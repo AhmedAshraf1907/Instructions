@@ -1,0 +1,49 @@
+# We will work on 3 nodes one is Master and 2 nodes are Workers
+# If you do not have a DNS setup, each node should have the following entries in the /etc/hosts file
+sudo vim /etc/hosts 
+# Add the names of three hosts on each node.
+============================================
+                           ((Kernel Step))
+# Next step is to configure kernel to ensure that we have the appropriate kernel headers installed on your system (on each node)
+sudo dnf install kernel-devel-$(uname -r)
+# To load the necessary kernel modules required by Kubernetes, you can use the modprobe command followed by the module names (on each node)
+sudo modprobe br_netfilter
+sudo modprobe ip_vs
+sudo modprobe ip_vs_rr
+sudo modprobe ip_vs_wrr
+sudo modprobe ip_vs_sh
+sudo modprobe overlay
+# Next, create a configuration file (as the root user on each node) to ensure these modules load at system boot
+cat > /etc/modules-load.d/kubernetes.conf << EOF
+br_netfilter
+ip_vs
+ip_vs_rr
+ip_vs_wrr
+ip_vs_sh
+overlay
+EOF
+# To set specific sysctl settings (on each node) that Kubernetes relies on, you can update the system’s kernel parameters
+cat > /etc/sysctl.d/kubernetes.conf << EOF
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+# By setting these sysctl parameters, you ensure that your system is properly configured to support Kubernetes
+# Run the following command to apply the changes
+sysctl --system
+Done........
+=============================================
+                  ((Swap))
+# To disable swap on each server in your Kubernetes cluster, you can follow these steps:
+sudo swapoff -a
+sed -e '/swap/s/^/#/g' -i /etc/fstab
+Done........
+==============================================
+
+
+
+
+
+
+
+
